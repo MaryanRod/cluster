@@ -1,0 +1,35 @@
+library(dplyr)
+library(ggplot2)
+migracion<-read.csv("MIGRACION_BDP.csv")
+
+
+migracion2 <- migracion[ , c(1,2,5,9,10,11)]
+
+
+migracion2[3:6] <- lapply(migracion2[3:6], as.factor)
+
+reglas <- fim4r(migracion2, method = "fpgrowth", target = "rules", supp = 0.2, conf= 0.5)
+
+reglasframe <- as(reglas, "data.frame")
+
+migracion1 <- subset(migracion2, PEI3 == 1)
+
+migracion1 <- migracion1[migracion1$PEI5 != 9999, ]
+
+
+migracion3 <- subset(migracion2, PEI3 == 2)
+
+migracion3 <- migracion3[migracion3$PEI5 != 9999, ]
+
+migracion3_filtrado <- migracion3[migracion3$PEI4 >= 15, ]
+
+
+cluster <- kmeans(migracion3_filtrado, centers= 5)
+
+ggplot(migracion3_filtrado, aes(x=PEI4, y=PEI5, color= as.factor(cluster$cluster)))+
+  geom_point()+
+  geom_point(data = as.data.frame(cluster$centers), aes(x=PEI4, y=PEI5), color = "pink", size = 4, shape=17)+
+  labs(title = "Edad vs Año de migración")+
+  theme_minimal()
+
+
